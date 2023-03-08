@@ -19,5 +19,3 @@ publicly available dataset(s).
 
 ## Business Opportunity 
 The healthcare industry in Singapore is facing a pressing issue of burnout and stress faced by its healthcare workers, specifically nurses. This has translated into high attrition rates, especially with the advent of Covid-19. Attrition rate for local nurses increased from 5.4% in 2020 to 7.4% in 2021 (Abu Baker, 2022). This is a problem that NHCS could possibly be facing now or in the near future with an ageing population that is more susceptible to heart diseases. Therefore, we hope to identify solutions that meet the motivations and needs of nurses to lighten their workload and better retain them. 
-
-## Proposed Solutions
