@@ -1,0 +1,389 @@
+install.packages("rpart.plot")    
+install.packages("caTools") 
+install.packages("ggplot2")
+install.packages("data.table")
+install.packages("tidyr")
+
+library(data.table)
+library(ggplot2)
+library(rpart.plot)
+library(rpart)
+library(caTools)
+library(car)
+library(tidyr)
+
+setwd("/Users/phyllisyen/Desktop/BC2406 ANALYTICS 1")
+
+##____________ Singstat dataset _____________
+#Graph 1__________________________________
+
+#Load & Clean data
+adm.dt = fread("adm_monthly.csv", na.strings = "na")
+sum(is.na(adm.dt))
+
+adm.dt[is.na(adm.dt)] <- 0
+adm.dt[, (2:8) := NULL ]
+adm.dt[, (62:421) := NULL ]
+
+
+#Extract & Assign data values into variables
+
+#Average admissions of public hospitals per month (excluding NHCS)
+ph_jan <- as.integer(
+  (adm.dt[1,13]-adm.dt[14,13]) + (adm.dt[1,25]-adm.dt[14,25]) + (adm.dt[1,37]-adm.dt[14,37])
+  + (adm.dt[1,49]-adm.dt[14,49]) + (adm.dt[1,61]-adm.dt[14,61])
+)/65
+
+ph_feb <- as.integer(
+  (adm.dt[1,12]-adm.dt[14,12]) + (adm.dt[1,24]-adm.dt[14,24]) + (adm.dt[1,36]-adm.dt[14,36])
+  + (adm.dt[1,48]-adm.dt[14,48]) + (adm.dt[1,60]-adm.dt[14,60])
+)/65
+
+ph_mar <- as.integer(
+  (adm.dt[1,11]-adm.dt[14,11]) + (adm.dt[1,23]-adm.dt[14,23]) + (adm.dt[1,35]-adm.dt[14,35])
+  + (adm.dt[1,47]-adm.dt[14,47]) + (adm.dt[1,59]-adm.dt[14,59])
+)/65
+
+ph_apr <- as.integer(
+  (adm.dt[1,10]-adm.dt[14,10]) + (adm.dt[1,22]-adm.dt[14,22]) + (adm.dt[1,34]-adm.dt[14,34])
+  + (adm.dt[1,46]-adm.dt[14,46]) + (adm.dt[1,58]-adm.dt[14,58])
+)/65
+
+ph_may <- as.integer(
+  (adm.dt[1,9]-adm.dt[14,9]) + (adm.dt[1,21]-adm.dt[14,21]) + (adm.dt[1,33]-adm.dt[14,33])
+  + (adm.dt[1,45]-adm.dt[14,45]) + (adm.dt[1,57]-adm.dt[14,57])
+)/65
+
+ph_jun <- as.integer(
+  (adm.dt[1,8]-adm.dt[14,8]) + (adm.dt[1,20]-adm.dt[14,20]) + (adm.dt[1,32]-adm.dt[14,32])
+  + (adm.dt[1,44]-adm.dt[14,44]) + (adm.dt[1,56]-adm.dt[14,56])
+)/65
+
+ph_jul <- as.integer(
+  (adm.dt[1,7]-adm.dt[14,7]) + (adm.dt[1,19]-adm.dt[14,19]) + (adm.dt[1,31]-adm.dt[14,31])
+  + (adm.dt[1,43]-adm.dt[14,43]) + (adm.dt[1,55]-adm.dt[14,55])
+)/65
+
+ph_aug <- as.integer(
+  (adm.dt[1,6]-adm.dt[14,6]) + (adm.dt[1,18]-adm.dt[14,18]) + (adm.dt[1,30]-adm.dt[14,30])
+  + (adm.dt[1,42]-adm.dt[14,42]) + (adm.dt[1,54]-adm.dt[14,54])
+)/65
+
+ph_sep <- as.integer(
+  (adm.dt[1,5]-adm.dt[14,5]) + (adm.dt[1,17]-adm.dt[14,17]) + (adm.dt[1,29]-adm.dt[14,29])
+  + (adm.dt[1,41]-adm.dt[14,41]) + (adm.dt[1,53]-adm.dt[14,53])
+)/65
+
+ph_oct <- as.integer(
+  (adm.dt[1,4]-adm.dt[14,4]) + (adm.dt[1,16]-adm.dt[14,16]) + (adm.dt[1,28]-adm.dt[14,28])
+  + (adm.dt[1,40]-adm.dt[14,40]) + (adm.dt[1,52]-adm.dt[14,52])
+)/65
+
+ph_nov <- as.integer(
+  (adm.dt[1,3]-adm.dt[14,3]) + (adm.dt[1,15]-adm.dt[14,15]) + (adm.dt[1,27]-adm.dt[14,27])
+  + (adm.dt[1,39]-adm.dt[14,39]) + (adm.dt[1,51]-adm.dt[14,51])
+)/65
+
+ph_dec <- as.integer(
+  (adm.dt[1,2]-adm.dt[14,2]) + (adm.dt[1,14]-adm.dt[14,14]) + (adm.dt[1,26]-adm.dt[14,26])
+  + (adm.dt[1,38]-adm.dt[14,38]) + (adm.dt[1,50]-adm.dt[14,50])
+)/65
+
+#Average admissions of NHCS per month
+nhcs_jan = (adm.dt[14,13] + adm.dt[14,25] + adm.dt[14,37] + adm.dt[14,49] + adm.dt[14,61])/5
+nhcs_feb = (adm.dt[14,12] + adm.dt[14,24] + adm.dt[14,36] + adm.dt[14,48] + adm.dt[14,60])/5
+nhcs_mar = (adm.dt[14,11] + adm.dt[14,23] + adm.dt[14,35] + adm.dt[14,47] + adm.dt[14,59])/5
+nhcs_apr = (adm.dt[14,10] + adm.dt[14,22] + adm.dt[14,34] + adm.dt[14,46] + adm.dt[14,58])/5
+nhcs_may = (adm.dt[14,9] + adm.dt[14,21] + adm.dt[14,33] + adm.dt[14,45] + adm.dt[14,57])/5
+nhcs_jun = (adm.dt[14,8] + adm.dt[14,20] + adm.dt[14,32] + adm.dt[14,44] + adm.dt[14,56])/5
+nhcs_jul = (adm.dt[14,7] + adm.dt[14,19] + adm.dt[14,31] + adm.dt[14,43] + adm.dt[14,55])/5
+nhcs_aug = (adm.dt[14,6] + adm.dt[14,18] + adm.dt[14,30] + adm.dt[14,42] + adm.dt[14,54])/5
+nhcs_sep = (adm.dt[14,5] + adm.dt[14,17] + adm.dt[14,29] + adm.dt[14,41] + adm.dt[14,53])/5
+nhcs_oct = (adm.dt[14,4] + adm.dt[14,16] + adm.dt[14,28] + adm.dt[14,40] + adm.dt[14,52])/5
+nhcs_nov = (adm.dt[14,3] + adm.dt[14,15] + adm.dt[14,27] + adm.dt[14,39] + adm.dt[14,51])/5
+nhcs_dec = (adm.dt[14,2] + adm.dt[14,14] + adm.dt[14,26] + adm.dt[14,38] + adm.dt[14,50])/5
+
+#X-axis values1: Admissions of public hospitals per month (excluding NHCS)
+ph_adm_val <- c(ph_jan, ph_feb, ph_mar, ph_apr, ph_may, ph_jun, ph_jul, ph_aug, ph_sep, ph_oct, ph_nov, ph_dec)
+
+#X-axis values2: Admissions of NHCS per month
+nhcs_adm_val <- c(nhcs_jan, nhcs_feb, nhcs_mar, nhcs_apr, nhcs_may, nhcs_jun, nhcs_jul, nhcs_aug, nhcs_sep, nhcs_oct, nhcs_nov, nhcs_dec)
+
+#Y-axis values: Months
+months_list <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+#Create a data frame with X & Y axis values
+adm_df = data.frame(Months = months_list, Public_Hospital_Adm = ph_adm_val)
+adm_df$NHCS_Adm = as.numeric(nhcs_adm_val)
+
+#To allow X-axis(Months) to be in order of Jan-Dec
+adm_df$Months <- factor(adm_df$Months, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+
+#Line graph - Admissions Trend
+colors <- c("PH" = "orange", "NHCS" = "blue")
+ggplot() + 
+  geom_line(data = adm_df, mapping = aes(x = Months, y = Public_Hospital_Adm, group = 1, color= "PH")) +
+  geom_point(data = adm_df, mapping = aes(x = Months, y = Public_Hospital_Adm, group = 1, color="PH")) +
+  geom_line(data = adm_df, mapping = aes(x = Months, y = NHCS_Adm, group = 1, color="NHCS")) + 
+  geom_point(data = adm_df, mapping = aes(x = Months, y = NHCS_Adm, group = 1, color="NHCS")) +
+  labs(x = "Month", y = "Admissions", title = "Public Hospitals (PH) vs NHCS Admissions") +
+  scale_colour_manual(name="Legend",values=colors) + scale_fill_manual(values=colors)
+
+#-----------------------------------------------------------------------------------------------------------
+
+#Manpower of Public Hospitals (excluding NHCS) for 5 years
+mp_ph = c(23324-472, 22483-479, 21373-491, 20734-503, 20313-501)
+
+#Admissions of PH (excluding NHCS) for 5 years
+adm_ph_2021 = sum(adm.dt[1,2:13])
+adm_ph_2020 = sum(adm.dt[1,14:25])
+adm_ph_2019 = sum(adm.dt[1,26:37])
+adm_ph_2018 = sum(adm.dt[1,38:49])
+adm_ph_2017 = sum(adm.dt[1,50:61])
+
+adm_ph = c(adm_ph_2021, adm_ph_2020, adm_ph_2019, adm_ph_2018, adm_ph_2017)
+
+#Manpower of NHCS for 5 years
+mp_nhcs = c(472, 479, 491, 503, 501)
+
+#Admissions of NHCS for 5 years
+adm_nhcs_2021 = sum(adm.dt[14,2:13])
+adm_nhcs_2020 = sum(adm.dt[14,14:25])
+adm_nhcs_2019 = sum(adm.dt[14,26:37])
+adm_nhcs_2018 = sum(adm.dt[14,38:49])
+adm_nhcs_2017 = sum(adm.dt[14,50:61])
+
+adm_nhcs = c(adm_nhcs_2021, adm_nhcs_2020, adm_nhcs_2019, adm_nhcs_2018, adm_nhcs_2017)
+
+#Ratios
+adm_nhcs_2021/(mp_nhcs[1])
+# 2021: 1 nurse receive ~20 cases in a year (NHCS)
+
+adm_ph_2021/(mp_ph[1])
+# 2021: 1 nurse receive ~21 cases in a year (PH)
+
+adm_nhcs_2021/(mp_nhcs[1] - 29)
+adm_ph_2021/(mp_ph[1] + 3040)
+
+old_r = c(adm_nhcs_2021/(mp_nhcs[1]),adm_ph_2021/(mp_ph[1]))
+new_r = c(adm_nhcs_2021/(mp_nhcs[1] - 29),adm_ph_2021/(mp_ph[1] + 3040))
+list <- c(old_r, new_r)
+
+#Table of nurse-to-patient ratio
+r_table <- matrix(list, ncol = 2, nrow = 2)
+colnames(r_table) <- c("NHCS", "Public Hospitals")
+rownames(r_table) <- c("Old Ratio", "New Ratio")
+as.table(r_table)
+
+
+#Graphs - Manpower Trend
+manpower_df <- data.frame(mp_ph, mp_nhcs)
+manpower_df$Years <- c(2021,2020,2019,2018,2017)
+
+ggplot(manpower_df, aes(x= Years, y= mp_nhcs, label= mp_nhcs)) +
+  geom_point(color = "blue") + geom_line(color = "blue") + geom_text(hjust= 0, vjust= 0) +
+  labs(x = "Year", y = "Manpower", title = "NHCS' Manpower (Past 5 years)")
+
+manpower_df2 <- data.frame(mp_ph, mp_ph)
+manpower_df2$Years <- c(2021,2020,2019,2018,2017)
+
+ggplot(manpower_df2, aes(x= Years, y= mp_ph, label= mp_ph)) +
+  geom_point(color = "orange") + geom_line(color = "orange") + geom_text(hjust= 0, vjust= 0) +
+  labs(x = "Year", y = "Manpower", title = "Public hospitals' Manpower (Past 5 years)") +
+  theme(axis.text = element_text(size = 15))
+
+
+
+##____________ Cardiac Unit dataset _____________
+
+data <- fread("HDHI Admission data.csv")
+#Dropping irrelevant columns and records
+data[,c(1:4,9,12,15,20:29,31:33,36:56):= NULL]
+data= data[(RURAL == 'U')]
+data[,RURAL:=NULL]
+
+#Looking for missing values and outliers
+summary(data)
+summary(factor(data$GENDER))
+summary(factor(data$ADMISSION_TYPE))
+
+#factoring categorical variables
+data$GENDER <- factor(data$GENDER)
+data$ADMISSION_TYPE <- factor(data$ADMISSION_TYPE)
+data$SMOKING <- factor(data$SMOKING)
+data$ALCOHOL <- factor(data$ALCOHOL)
+data$HTN <- factor(data$HTN)
+data$CAD <- factor(data$CAD)
+data$`PRIOR CMP` <- factor(data$`PRIOR CMP`)
+data$CKD <- factor(data$CKD)
+data$ANAEMIA <- factor(data$ANAEMIA)
+data$`ATYPICAL CHEST PAIN` <- factor(data$`ATYPICAL CHEST PAIN`)
+data$`HEART FAILURE` <- factor(data$`HEART FAILURE`)
+summary(data)
+
+#creating INTENSIVE column
+data[,INTENSIVE := ifelse(DURATION_IU == 0,0,1)]
+data$INTENSIVE <- factor(data$INTENSIVE)
+summary(data)
+
+#Export dataframe into csv file
+names(data)[names(data) == 'Data Series'] <- 'HDHI Admission data'
+write.csv(nurse.dt, "HDHI Admission data (cleaned).csv")
+
+#age distribution
+ggplot(data,aes(x=AGE))+geom_histogram(binwidth = 5,fill="blue",colour="black")+labs(x = "Age", y = "Number of patients admitted", title = "Age distribution of cardiac patients")
+summary(data$AGE)
+
+#Length of stay
+ggplot(data,aes(x=`DURATION OF STAY`, y = ADMISSION_TYPE))+geom_boxplot()+labs(title = "Length of Stay")
+summary(data[ADMISSION_TYPE == 'O',`DURATION OF STAY`])
+summary(data[ADMISSION_TYPE == 'E',`DURATION OF STAY`])
+
+#Common medical conditions
+summary(data[,8:14])
+slices <- summary(data$HTN)
+pie(slices,labels = paste(c("No", "Yes"), round(slices/sum(slices)*100, digits = 2)), col=cm.colors(2),main = "Patients with Hypertension")
+slices <- summary(data$CAD)
+pie(slices,labels = paste(c("No", "Yes"), round(slices/sum(slices)*100, digits = 2)), col=cm.colors(2),main = "Patients with Prior CAD")
+
+#CART
+#Standardize result with setseed
+set.seed(5)
+
+#for rpart, do not consider duration_IU, since intensive column is base on that
+data.cart1 <- rpart(INTENSIVE~ .-DURATION_IU, data = data, method = 'class', control = rpart.control(minsplit = 2, cp = 0))
+printcp(data.cart1)
+
+#Display the pruning sequence and 10-fold CV errors, as a chart.
+plotcp(data.cart1, main = "Subtrees for HDHI.csv")
+
+#Find CP
+cp1 <- sqrt(2.0823e-03*6.9678e-03)
+
+cp1
+
+#Prune and plot the tree
+data2 <- prune(data.cart1, cp=cp1)
+rpart.plot(data2, nn=T, main ="Pruned tree with cp=0.003809075")
+
+printcp(data2)
+print(data2)
+
+## --- Trainset Error & CV Error --------------------------
+## Root node error: 2081/12077 = 0.17231
+## data2 trainset Misclassification Error = 0.0069678*0.17231 = 0.001200621618
+## data2 CV Misclassification Error = 0.68044*0.17231 = 0.1172466164
+
+data2$variable.importance
+
+summary(data2)
+
+
+
+
+##____________ Employee dataset _____________
+employee.dt <- fread('/Users/phyllisyen/Desktop/BC2406 ANALYTICS 1/Project/healthcare_employee.csv')
+View(employee.dt)
+# subsetting [JobRole] == "Nurse" and [Department] == "Cardiology"
+nurse.dt <- employee.dt[c(JobRole == 'Nurse' & Department == 'Cardiology')]
+
+# dropping columns
+nurse.dt <- nurse.dt[, ! c("JobRole", "Over18", "StandardHours","EmployeeID", "EmployeeCount","MonthlyRate", "DailyRate", "HourlyRate", "Department")]
+View(nurse.dt)
+str(nurse.dt)
+anyNA(nurse.dt)
+
+# factor nominal variables
+nurse.dt$Attrition <- factor(nurse.dt$Attrition)
+nurse.dt$BusinessTravel <- factor(nurse.dt$BusinessTravel)
+nurse.dt$EducationField <- factor(nurse.dt$EducationField)
+nurse.dt$Gender <- factor(nurse.dt$Gender)
+nurse.dt$BusinessTravel <- factor(nurse.dt$BusinessTravel)
+nurse.dt$MaritalStatus <- factor(nurse.dt$MaritalStatus)
+nurse.dt$OverTime <- factor(nurse.dt$OverTime)
+nurse.dt$Shift <- factor(nurse.dt$Shift)
+
+#factor ordinal variables
+nurse.dt$EnvironmentSatisfaction <- factor(nurse.dt$EnvironmentSatisfaction, ordered= T, levels = c(1,2,3,4))
+nurse.dt$JobInvolvement <- factor(nurse.dt$JobInvolvement, ordered= T, levels = c(1,2,3,4))
+nurse.dt$JobSatisfaction <- factor(nurse.dt$JobSatisfaction, ordered= T, levels = c(1,2,3,4))
+nurse.dt$RelationshipSatisfaction <- factor(nurse.dt$RelationshipSatisfaction, ordered= T, levels = c(1,2,3,4))
+nurse.dt$PerformanceRating <- factor(nurse.dt$PerformanceRating, ordered= T, levels = c(1,2,3,4))
+nurse.dt$WorkLifeBalance <- factor(nurse.dt$WorkLifeBalance, ordered= T, levels = c(1,2,3,4))
+nurse.dt$Education <- factor(nurse.dt$Education, ordered= T, levels = c(1,2,3,4,5))
+nurse.dt$JobLevel <- factor(nurse.dt$JobLevel, ordered= T, levels = c(1,2,3,4,5))
+
+
+# DATA EXPLORATION
+nurse.dt[, .N] 
+nrow(nurse.dt[Attrition == "Yes"])
+42/357 
+
+# ggplot for appendix
+ggplot(nurse.dt, aes(x=DistanceFromHome, y = Attrition)) + geom_boxplot() + labs(title = "Boxplot of Distance From Home with Attrition")
+x <- nurse.dt[Attrition == "Yes"]
+y <- nurse.dt[Attrition == "No"]
+median(x$DistanceFromHome)
+median(y$DistanceFromHome)
+
+ggplot(nurse.dt, aes(x=TotalWorkingYears, y = Attrition)) + geom_boxplot() + labs(title = "Boxplot of Total Working Years with Attrition")
+median(x$TotalWorkingYears)
+median(y$TotalWorkingYears)
+
+
+ggplot(nurse.dt, aes(x = JobInvolvement, fill=Attrition)) + geom_bar(position="fill")  + labs(title = "Level of Job Involvement and Attrition", y = "Percentage of Nurses")
+                                                        
+ggplot(nurse.dt, aes(x = OverTime, fill=Attrition)) + geom_bar(position="fill")  + labs(title = "Overtime and Attrition", y="Percentage of Nurses") 
+
+ggplot(nurse.dt, aes(x = factor(NumCompaniesWorked), fill=Attrition)) + geom_bar(position="fill")  + labs(title = "Number of Hospitals Worked and Attrition", y="Percentage of Nurses", x = "No. of Hospitals Worked") 
+
+ggplot(nurse.dt, aes(x = JobSatisfaction, fill=Attrition)) + geom_bar(position="fill")  + labs(title = "Level of Job Satisfaction and Attrition", y = "Percentage of Nurses")
+
+ggplot(nurse.dt, aes(x = Shift, fill=Attrition)) + geom_bar(position="fill")  + labs(title = "Shift Worked and Attrition", y = "Percentage of Nurses")
+
+# doing backward regression
+fitsall <- glm(Attrition ~ Age + BusinessTravel + DistanceFromHome + Gender + JobInvolvement + JobSatisfaction + MonthlyIncome + NumCompaniesWorked + OverTime + PercentSalaryHike + PerformanceRating + RelationshipSatisfaction + Shift + TotalWorkingYears + TrainingTimesLastYear + WorkLifeBalance + YearsAtCompany + YearsSinceLastPromotion + YearsWithCurrManager, data = nurse.dt, family = "binomial") 
+fitsall <- glm(Attrition ~ . -Education -EducationField -EnvironmentSatisfaction -JobLevel -YearsInCurrentRole -MaritalStatus ,  data = nurse.dt, family = "binomial")
+
+# checking multicollinearity
+fitsallStep <- step(fitsall)
+vif(fitsallStep)
+
+# identifying significant variables
+m1 <- glm(Attrition ~ Age + BusinessTravel + DistanceFromHome + TotalWorkingYears + WorkLifeBalance + NumCompaniesWorked + JobInvolvement + JobSatisfaction + Shift + DistanceFromHome + OverTime,  data = nurse.dt, family = "binomial")
+summary(m1)
+
+# logistic regression
+set.seed(100)
+train <- sample.split(Y = nurse.dt$Attrition, SplitRatio = 0.7)
+trainset <- subset(nurse.dt, train == T)
+testset <- subset(nurse.dt, train == F)
+View(trainset)
+View(testset)
+
+# train set
+train.m1 <- glm(Attrition ~ DistanceFromHome + JobInvolvement +  JobSatisfaction + NumCompaniesWorked + OverTime + Shift + TotalWorkingYears, family = binomial, data = trainset)
+summary(train.m1)
+OR.train <- exp(coef(train.m1)[-1])
+prob.train <- predict(train.m1, type = "response")
+train.m1.predict <- ifelse(prob.train > 0.5, "Yes", "No")
+table.train.m1 <- table(trainset = trainset$Attrition, train.m1.predict, deparse.level = 2)
+table.train.m1
+round(prop.table(table2), 3)
+mean(train.m1.predict == trainset$Attrition)
+
+
+
+# test set
+test.m1 <- glm(Attrition ~ DistanceFromHome + JobInvolvement +  JobSatisfaction + NumCompaniesWorked + OverTime + Shift + TotalWorkingYears, family = binomial, data = testset)
+summary(test.m1)
+OR.test <- exp(coef(test.m1)[-1])
+prob.test <- predict(test.m1, type = "response")
+test.m1.predict <- ifelse(prob.test > 0.5, "Yes", "No")
+table.test.m1 <- table(testset = testset$Attrition, test.m1.predict, deparse.level = 2)
+table.test.m1
+round(prop.table(table3), 3)
+mean(test.m1.predict == testset$Attrition)
+
+
+
